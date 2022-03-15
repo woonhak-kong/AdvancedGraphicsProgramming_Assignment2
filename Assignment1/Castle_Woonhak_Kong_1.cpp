@@ -535,6 +535,8 @@ void ShapesApp::BuildShadersAndInputLayout()
 
 void ShapesApp::BuildShapeGeometry()
 {
+	std::vector<GeometryGenerator::MeshData> shapesVector;
+
 	GeometryGenerator geoGen;
 	GeometryGenerator::MeshData wholeWall = geoGen.CreateBox(1.0f, 1.0f, 1.0f, 0);
 	GeometryGenerator::MeshData grid = geoGen.CreateGrid(24.0f, 24.0f, 25, 25);
@@ -545,6 +547,14 @@ void ShapesApp::BuildShapeGeometry()
 	GeometryGenerator::MeshData Base3 = geoGen.CreateCylinder(0.5f, 0.0f, 1.0f, 10, 1);
 	GeometryGenerator::MeshData top = geoGen.CreateSphere(0.5f, 11, 10);
 
+	shapesVector.push_back(wholeWall);
+	shapesVector.push_back(grid);
+	shapesVector.push_back(column);
+	shapesVector.push_back(columnTop);
+	shapesVector.push_back(Base1);
+	shapesVector.push_back(Base2);
+	shapesVector.push_back(Base3);
+	shapesVector.push_back(top);
 
 	
 	//Step1
@@ -666,54 +676,69 @@ void ShapesApp::BuildShapeGeometry()
 	std::vector<Vertex> vertices(totalVertexCount);
 
 	UINT k = 0;
-	for (size_t i = 0; i < wholeWall.Vertices.size(); ++i, ++k)
+	for(size_t i = 0; i < shapesVector.size(); i++)
 	{
-		vertices[k].Pos = wholeWall.Vertices[i].Position;
-		vertices[k].Color = XMFLOAT4(DirectX::Colors::Red);
+		for(size_t j = 0; j < shapesVector[i].Vertices.size(); j++, k++)
+		{
+			auto& p = shapesVector[i].Vertices[j].Position;
+			vertices[k].Pos = p;
+			vertices[k].Normal = shapesVector[i].Vertices[j].Normal;
+			vertices[k].TexC = shapesVector[i].Vertices[j].TexC;
+		}
 	}
+	//for (size_t i = 0; i < wholeWall.Vertices.size(); ++i, ++k)
+	//{
+	//	auto& p = box.Vertices[i].Position;
+	//	vertices[i].Pos = p;
+	//	vertices[i].Normal = box.Vertices[i].Normal;
+	//	vertices[i].TexC = box.Vertices[i].TexC;
 
-	//step6
-	for (size_t i = 0; i < grid.Vertices.size(); ++i, ++k)
-	{
-		vertices[k].Pos = grid.Vertices[i].Position;
-		vertices[k].Color = XMFLOAT4({0, 0.1f, 0, 1});
-	}
+	//	vertices[k].Pos = wholeWall.Vertices[i].Position;
+	//	vertices[k].Color = XMFLOAT4(DirectX::Colors::Red);
+	//}
 
-	for (size_t i = 0; i < column.Vertices.size(); ++i, ++k)
-	{
-		vertices[k].Pos = column.Vertices[i].Position;
-		vertices[k].Color = XMFLOAT4(DirectX::Colors::Green);
-	}
+	////step6
+	//for (size_t i = 0; i < grid.Vertices.size(); ++i, ++k)
+	//{
+	//	vertices[k].Pos = grid.Vertices[i].Position;
+	//	vertices[k].Color = XMFLOAT4({0, 0.1f, 0, 1});
+	//}
 
-	for (size_t i = 0; i < columnTop.Vertices.size(); ++i, ++k)
-	{
-		vertices[k].Pos = columnTop.Vertices[i].Position;
-		vertices[k].Color = XMFLOAT4(DirectX::Colors::Yellow);
-	}
+	//for (size_t i = 0; i < column.Vertices.size(); ++i, ++k)
+	//{
+	//	vertices[k].Pos = column.Vertices[i].Position;
+	//	vertices[k].Color = XMFLOAT4(DirectX::Colors::Green);
+	//}
 
-	for (size_t i = 0; i < Base1.Vertices.size(); ++i, ++k)
-	{
-		vertices[k].Pos = Base1.Vertices[i].Position;
-		vertices[k].Color = XMFLOAT4(DirectX::Colors::Blue);
-	}
+	//for (size_t i = 0; i < columnTop.Vertices.size(); ++i, ++k)
+	//{
+	//	vertices[k].Pos = columnTop.Vertices[i].Position;
+	//	vertices[k].Color = XMFLOAT4(DirectX::Colors::Yellow);
+	//}
 
-	for (size_t i = 0; i < Base2.Vertices.size(); ++i, ++k)
-	{
-		vertices[k].Pos = Base2.Vertices[i].Position;
-		vertices[k].Color = XMFLOAT4(DirectX::Colors::DeepPink);
-	}
+	//for (size_t i = 0; i < Base1.Vertices.size(); ++i, ++k)
+	//{
+	//	vertices[k].Pos = Base1.Vertices[i].Position;
+	//	vertices[k].Color = XMFLOAT4(DirectX::Colors::Blue);
+	//}
 
-	for (size_t i = 0; i < Base3.Vertices.size(); ++i, ++k)
-	{
-		vertices[k].Pos = Base3.Vertices[i].Position;
-		vertices[k].Color = XMFLOAT4(DirectX::Colors::Cyan);
-	}
+	//for (size_t i = 0; i < Base2.Vertices.size(); ++i, ++k)
+	//{
+	//	vertices[k].Pos = Base2.Vertices[i].Position;
+	//	vertices[k].Color = XMFLOAT4(DirectX::Colors::DeepPink);
+	//}
 
-	for (size_t i = 0; i < top.Vertices.size(); ++i, ++k)
-	{
-		vertices[k].Pos = top.Vertices[i].Position;
-		vertices[k].Color = XMFLOAT4(DirectX::Colors::Red);
-	}
+	//for (size_t i = 0; i < Base3.Vertices.size(); ++i, ++k)
+	//{
+	//	vertices[k].Pos = Base3.Vertices[i].Position;
+	//	vertices[k].Color = XMFLOAT4(DirectX::Colors::Cyan);
+	//}
+
+	//for (size_t i = 0; i < top.Vertices.size(); ++i, ++k)
+	//{
+	//	vertices[k].Pos = top.Vertices[i].Position;
+	//	vertices[k].Color = XMFLOAT4(DirectX::Colors::Red);
+	//}
 
 
 	//for (size_t i = 0; i < cylinder.Vertices.size(); ++i, ++k)
