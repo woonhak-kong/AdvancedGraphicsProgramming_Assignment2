@@ -476,13 +476,37 @@ void TexWavesApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.FarZ = 1000.0f;
 	mMainPassCB.TotalTime = gt.TotalTime();
 	mMainPassCB.DeltaTime = gt.DeltaTime();
-	mMainPassCB.AmbientLight = { 0.25f, 0.25f, 0.35f, 1.0f };
-	mMainPassCB.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
-	mMainPassCB.Lights[0].Strength = { 0.9f, 0.9f, 0.9f };
-	mMainPassCB.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
-	mMainPassCB.Lights[1].Strength = { 0.5f, 0.5f, 0.5f };
-	mMainPassCB.Lights[2].Direction = { 0.0f, -0.707f, -0.707f };
-	mMainPassCB.Lights[2].Strength = { 0.2f, 0.2f, 0.2f };
+	mMainPassCB.AmbientLight = { 0.988f, 0.611f, 0.329f, 1.0f };
+	
+	mMainPassCB.Lights[0].Position = { -9.0f, 13.0f, -9.0f };
+	mMainPassCB.Lights[0].Direction = { 0.0f, -5.0f, 0.0f };
+	mMainPassCB.Lights[0].Strength = { .35f, .35f, .35f };
+	mMainPassCB.Lights[0].SpotPower = 0.95;
+
+	mMainPassCB.Lights[1].Position = { 9.0f, 13.0f, -9.0f };
+	mMainPassCB.Lights[1].Direction = { 0.0f, -5.0f, 0.0f };
+	mMainPassCB.Lights[1].Strength = { .35f, .35f, .35f };
+	mMainPassCB.Lights[1].SpotPower = 0.95;
+
+	mMainPassCB.Lights[2].Position = { -9.0f, 13.0f, 9.0f };
+	mMainPassCB.Lights[2].Direction = { 0.0f, -5.0f, 0.0f };
+	mMainPassCB.Lights[2].Strength = { .35f, .35f, .35f };
+	mMainPassCB.Lights[2].SpotPower = 0.95;
+
+	mMainPassCB.Lights[3].Position = { 9.0f, 13.0f, 9.0f };
+	mMainPassCB.Lights[3].Direction = { 0.0f, -5.0f, 0.0f };
+	mMainPassCB.Lights[3].Strength = { .35f, .35f, .35f };
+	mMainPassCB.Lights[3].SpotPower = 0.95;
+
+	mMainPassCB.Lights[4].Position = { 0.0f, 18.0f, 0.0f };
+	mMainPassCB.Lights[4].Direction = { 0.0f, -5.0f, 0.0f };
+	mMainPassCB.Lights[4].Strength = { .75f, .75f, .75f };
+	mMainPassCB.Lights[4].SpotPower = 0.95;
+
+	//mMainPassCB.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
+	//mMainPassCB.Lights[1].Strength = { 0.5f, 0.5f, 0.5f };
+	//mMainPassCB.Lights[2].Direction = { 0.0f, -0.707f, -0.707f };
+	//mMainPassCB.Lights[2].Strength = { 0.2f, 0.2f, 0.2f };
 
 	auto currPassCB = mCurrFrameResource->PassCB.get();
 	currPassCB->CopyData(0, mMainPassCB);
@@ -1171,7 +1195,7 @@ void TexWavesApp::BuildRenderItems()
 	
 	//mRitemLayer[(int)RenderLayer::Opaque].push_back(wavesRitem.get());
 
-    auto gridRitem = std::make_unique<RenderItem>();
+   /* auto gridRitem = std::make_unique<RenderItem>();
     gridRitem->World = MathHelper::Identity4x4();
 	XMStoreFloat4x4(&gridRitem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f));
 	gridRitem->ObjCBIndex = cbindex++;
@@ -1182,11 +1206,11 @@ void TexWavesApp::BuildRenderItems()
     gridRitem->StartIndexLocation = gridRitem->Geo->DrawArgs["grid"].StartIndexLocation;
     gridRitem->BaseVertexLocation = gridRitem->Geo->DrawArgs["grid"].BaseVertexLocation;
 
-	mAllRitems.push_back(std::move(gridRitem));
+	mAllRitems.push_back(std::move(gridRitem));*/
 	
 	//mRitemLayer[(int)RenderLayer::Opaque].push_back(gridRitem.get());
 
-	auto boxRitem = std::make_unique<RenderItem>();
+	/*auto boxRitem = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&boxRitem->World, XMMatrixTranslation(3.0f, 2.0f, -9.0f));
 	boxRitem->ObjCBIndex = cbindex++;
 	boxRitem->Mat = mMaterials["wirefence"].get();
@@ -1196,7 +1220,7 @@ void TexWavesApp::BuildRenderItems()
 	boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
 	boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
 
-	mAllRitems.push_back(std::move(boxRitem));
+	mAllRitems.push_back(std::move(boxRitem));*/
 	//mRitemLayer[(int)RenderLayer::Opaque].push_back(boxRitem.get());
 
 	
@@ -1324,7 +1348,7 @@ void TexWavesApp::BuildRenderItems()
 	mAllRitems.push_back(std::move(columnBackRight));
 
 	auto columnTopFLeft = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&columnTopFLeft->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(-9.0f, 11.0f, -9.0f));
+	XMStoreFloat4x4(&columnTopFLeft->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(-9.0f, 13.0f, -9.0f));
 	columnTopFLeft->ObjCBIndex = cbindex++;
 	columnTopFLeft->Mat = mMaterials["wirefence"].get();
 	columnTopFLeft->Geo = mGeometries["shapeGeo"].get();
@@ -1335,7 +1359,7 @@ void TexWavesApp::BuildRenderItems()
 	mAllRitems.push_back(std::move(columnTopFLeft));
 
 	auto columnTopFRight = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&columnTopFRight->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(9.0f, 11.0f, -9.0f));
+	XMStoreFloat4x4(&columnTopFRight->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(9.0f, 13.0f, -9.0f));
 	columnTopFRight->ObjCBIndex = cbindex++;
 	columnTopFRight->Mat = mMaterials["wirefence"].get();
 	columnTopFRight->Geo = mGeometries["shapeGeo"].get();
@@ -1347,7 +1371,7 @@ void TexWavesApp::BuildRenderItems()
 
 
 	auto columnTopBLeft = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&columnTopBLeft->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(-9.0f, 11.0f, 9.0f));
+	XMStoreFloat4x4(&columnTopBLeft->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(-9.0f, 13.0f, 9.0f));
 	columnTopBLeft->ObjCBIndex = cbindex++;
 	columnTopBLeft->Mat = mMaterials["wirefence"].get();
 	columnTopBLeft->Geo = mGeometries["shapeGeo"].get();
@@ -1359,7 +1383,7 @@ void TexWavesApp::BuildRenderItems()
 
 
 	auto columnTopBRight = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&columnTopBRight->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(9.0f, 11.0f, 9.0f));
+	XMStoreFloat4x4(&columnTopBRight->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(9.0f, 13.0f, 9.0f));
 	columnTopBRight->ObjCBIndex = cbindex++;
 	columnTopBRight->Mat = mMaterials["wirefence"].get();
 	columnTopBRight->Geo = mGeometries["shapeGeo"].get();
