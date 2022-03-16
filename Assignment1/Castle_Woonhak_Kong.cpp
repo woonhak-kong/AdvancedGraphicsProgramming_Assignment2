@@ -476,31 +476,31 @@ void TexWavesApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.FarZ = 1000.0f;
 	mMainPassCB.TotalTime = gt.TotalTime();
 	mMainPassCB.DeltaTime = gt.DeltaTime();
-	mMainPassCB.AmbientLight = { 0.988f, 0.611f, 0.329f, 1.0f };
+	mMainPassCB.AmbientLight = { 1, 1, 1, 1.0f };
 	
 	mMainPassCB.Lights[0].Position = { -9.0f, 13.0f, -9.0f };
 	mMainPassCB.Lights[0].Direction = { 0.0f, -5.0f, 0.0f };
-	mMainPassCB.Lights[0].Strength = { .35f, .35f, .35f };
-	mMainPassCB.Lights[0].SpotPower = 0.95;
+	mMainPassCB.Lights[0].Strength = { 0.541f, 0.984f, 1.0f };
+	mMainPassCB.Lights[0].SpotPower = 0.35;
 
 	mMainPassCB.Lights[1].Position = { 9.0f, 13.0f, -9.0f };
 	mMainPassCB.Lights[1].Direction = { 0.0f, -5.0f, 0.0f };
-	mMainPassCB.Lights[1].Strength = { .35f, .35f, .35f };
-	mMainPassCB.Lights[1].SpotPower = 0.95;
+	mMainPassCB.Lights[1].Strength = { 0.541f, 0.984f, 1.0f };
+	mMainPassCB.Lights[1].SpotPower = 0.35;
 
 	mMainPassCB.Lights[2].Position = { -9.0f, 13.0f, 9.0f };
 	mMainPassCB.Lights[2].Direction = { 0.0f, -5.0f, 0.0f };
-	mMainPassCB.Lights[2].Strength = { .35f, .35f, .35f };
-	mMainPassCB.Lights[2].SpotPower = 0.95;
+	mMainPassCB.Lights[2].Strength = { 0.541f, 0.984f, 1.0f };
+	mMainPassCB.Lights[2].SpotPower = 0.35;
 
 	mMainPassCB.Lights[3].Position = { 9.0f, 13.0f, 9.0f };
 	mMainPassCB.Lights[3].Direction = { 0.0f, -5.0f, 0.0f };
-	mMainPassCB.Lights[3].Strength = { .35f, .35f, .35f };
-	mMainPassCB.Lights[3].SpotPower = 0.95;
+	mMainPassCB.Lights[3].Strength = { 0.541f, 0.984f, 1.0f };
+	mMainPassCB.Lights[3].SpotPower = 0.35;
 
 	mMainPassCB.Lights[4].Position = { 0.0f, 18.0f, 0.0f };
 	mMainPassCB.Lights[4].Direction = { 0.0f, -5.0f, 0.0f };
-	mMainPassCB.Lights[4].Strength = { .75f, .75f, .75f };
+	mMainPassCB.Lights[4].Strength = { 1, 0, 0 };
 	mMainPassCB.Lights[4].SpotPower = 0.95;
 
 	//mMainPassCB.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
