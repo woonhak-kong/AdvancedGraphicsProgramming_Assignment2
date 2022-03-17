@@ -1265,7 +1265,9 @@ void TexWavesApp::BuildRenderItems()
 
 
 	auto backWall = std::make_unique<RenderItem>();
+	//backWall->World = MathHelper::Identity4x4();
 	XMStoreFloat4x4(&backWall->World, XMMatrixScaling(18.0f, 8.0f, 0.5f) * XMMatrixTranslation(0.0f, 4.0f, 9.0f));
+	XMStoreFloat4x4(&backWall->TexTransform, XMMatrixScaling(4.0f, 1.6f, 1.0f));
 	backWall->ObjCBIndex = cbindex++;
 	backWall->Mat = mMaterials["stone"].get();
 	backWall->Geo = mGeometries["shapeGeo"].get();
@@ -1277,8 +1279,9 @@ void TexWavesApp::BuildRenderItems()
 
 	auto leftWall = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&leftWall->World, XMMatrixScaling(18.0f, 8.0f, 0.5f) * XMMatrixRotationAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMConvertToRadians(90.0f)) * XMMatrixTranslation(-9.0f, 4.0f, 0.0f));
+	XMStoreFloat4x4(&leftWall->TexTransform, XMMatrixScaling(4.0f, 1.6f, 1.0f));
 	leftWall->ObjCBIndex = cbindex++;
-	leftWall->Mat = mMaterials["wirefence"].get();
+	leftWall->Mat = mMaterials["stone"].get();
 	leftWall->Geo = mGeometries["shapeGeo"].get();
 	leftWall->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	leftWall->IndexCount = leftWall->Geo->DrawArgs["wholeWall"].IndexCount;
@@ -1288,8 +1291,9 @@ void TexWavesApp::BuildRenderItems()
 
 	auto rightWall = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&rightWall->World, XMMatrixScaling(18.0f, 8.0f, 0.5f) * XMMatrixRotationAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMConvertToRadians(90.0f)) * XMMatrixTranslation(9.0f, 4.0f, 0.0f));
+	XMStoreFloat4x4(&rightWall->TexTransform, XMMatrixScaling(4.0f, 1.6f, 1.0f));
 	rightWall->ObjCBIndex = cbindex++;
-	rightWall->Mat = mMaterials["wirefence"].get();
+	rightWall->Mat = mMaterials["stone"].get();
 	rightWall->Geo = mGeometries["shapeGeo"].get();
 	rightWall->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	rightWall->IndexCount = rightWall->Geo->DrawArgs["wholeWall"].IndexCount;
@@ -1299,8 +1303,9 @@ void TexWavesApp::BuildRenderItems()
 
 	auto frontWall1 = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&frontWall1->World, XMMatrixScaling(6.0f, 5.0f, 0.5f) * XMMatrixTranslation(-5.0f, 2.5f, -9.0f));
+	XMStoreFloat4x4(&frontWall1->TexTransform, XMMatrixScaling(1.33f, 1.11f, 1.0f));
 	frontWall1->ObjCBIndex = cbindex++;
-	frontWall1->Mat = mMaterials["wirefence"].get();
+	frontWall1->Mat = mMaterials["stone"].get();
 	frontWall1->Geo = mGeometries["shapeGeo"].get();
 	frontWall1->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	frontWall1->IndexCount = frontWall1->Geo->DrawArgs["wholeWall"].IndexCount;
@@ -1310,8 +1315,9 @@ void TexWavesApp::BuildRenderItems()
 
 	auto frontWall2 = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&frontWall2->World, XMMatrixScaling(6.0f, 5.0f, 0.5f) * XMMatrixTranslation(5.0f, 2.5f, -9.0f));
+	XMStoreFloat4x4(&frontWall2->TexTransform, XMMatrixScaling(1.33f, 1.11f, 1.0f));
 	frontWall2->ObjCBIndex = cbindex++;
-	frontWall2->Mat = mMaterials["wirefence"].get();
+	frontWall2->Mat = mMaterials["stone"].get();
 	frontWall2->Geo = mGeometries["shapeGeo"].get();
 	frontWall2->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	frontWall2->IndexCount = frontWall2->Geo->DrawArgs["wholeWall"].IndexCount;
@@ -1321,8 +1327,9 @@ void TexWavesApp::BuildRenderItems()
 
 	auto frontWall3 = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&frontWall3->World, XMMatrixScaling(18.0f, 3.0f, 0.5f) * XMMatrixTranslation(0.0f, 6.5f, -9.0f));
+	XMStoreFloat4x4(&frontWall3->TexTransform, XMMatrixScaling(4.0f, 0.66f, 1.0f));
 	frontWall3->ObjCBIndex = cbindex++;
-	frontWall3->Mat = mMaterials["wirefence"].get();
+	frontWall3->Mat = mMaterials["stone"].get();
 	frontWall3->Geo = mGeometries["shapeGeo"].get();
 	frontWall3->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	frontWall3->IndexCount = frontWall3->Geo->DrawArgs["wholeWall"].IndexCount;
