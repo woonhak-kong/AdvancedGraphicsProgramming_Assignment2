@@ -12,9 +12,9 @@
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
 using namespace DirectX::PackedVector;
-
-#pragma comment(lib, "d3dcompiler.lib")
-#pragma comment(lib, "D3D12.lib")
+//
+//#pragma comment(lib, "d3dcompiler.lib")
+//#pragma comment(lib, "D3D12.lib")
 
 const int gNumFrameResources = 3;
 
@@ -513,7 +513,7 @@ void TexWavesApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.Lights[1].Strength = { 0.196f, 0.784f, 0.305f };
 	//mMainPassCB.Lights[1].SpotPower = 0.95;
 	mMainPassCB.Lights[1].FalloffStart = 1.0f;
-	mMainPassCB.Lights[1].FalloffEnd = 30;
+	mMainPassCB.Lights[1].FalloffEnd = 50;
 	
 	mMainPassCB.Lights[2].Position = { -9.0f, 13.0f, -9.0f };
 	mMainPassCB.Lights[2].Direction = { 0.0f, -5.0f, 0.0f };
@@ -1096,8 +1096,15 @@ void TexWavesApp::BuildLandGeometry()
     {
         auto& p = grid.Vertices[i].Position;
         vertices[i].Pos = p;
-        vertices[i].Pos.y = GetHillsHeight(p.x, p.z);
-        vertices[i].Normal = GetHillsNormal(p.x, p.z);
+		if (p.x > 30 || p.x < -30 && p.z > 30 || p.z < -30)
+		{
+			vertices[i].Pos.y = GetHillsHeight(p.x, p.z);
+			vertices[i].Normal = GetHillsNormal(p.x, p.z);
+		}
+		else
+		{
+			vertices[i].Normal = grid.Vertices[i].Normal;
+		}
 		vertices[i].TexC = grid.Vertices[i].TexC;
     }
 
@@ -1345,7 +1352,7 @@ void TexWavesApp::BuildMaterials()
 	grass->Name = "grass";
 	grass->MatCBIndex = cbi++;
 	grass->DiffuseSrvHeapIndex = SHI++;
-	grass->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	grass->DiffuseAlbedo = XMFLOAT4(1.0f, 0.5f, 0.0f, 1.0f);
 	grass->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
 	grass->Roughness = 0.125f;
 
@@ -1433,7 +1440,8 @@ void TexWavesApp::BuildRenderItems()
 	int cbindex = 0;
 
     auto wavesRitem = std::make_unique<RenderItem>();
-    wavesRitem->World = MathHelper::Identity4x4();
+    //wavesRitem->World = MathHelper::Identity4x4();
+	XMStoreFloat4x4(&wavesRitem->World, XMMatrixTranslation(0.0f, -2.0f, 0.0f));
 	XMStoreFloat4x4(&wavesRitem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f));
 	wavesRitem->ObjCBIndex = cbindex++;
 	wavesRitem->Mat = mMaterials["water"].get();
@@ -1451,7 +1459,7 @@ void TexWavesApp::BuildRenderItems()
 	
 	//mRitemLayer[(int)RenderLayer::Opaque].push_back(wavesRitem.get());
 
-    /*auto gridRitem = std::make_unique<RenderItem>();
+    auto gridRitem = std::make_unique<RenderItem>();
     gridRitem->World = MathHelper::Identity4x4();
 	XMStoreFloat4x4(&gridRitem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f));
 	gridRitem->ObjCBIndex = cbindex++;
@@ -1466,21 +1474,21 @@ void TexWavesApp::BuildRenderItems()
 	mAllRitems.push_back(std::move(gridRitem));
 	
 
-	auto boxRitem = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&boxRitem->World, XMMatrixTranslation(3.0f, 2.0f, -9.0f));
-	boxRitem->ObjCBIndex = cbindex++;
-	boxRitem->Mat = mMaterials["wirefence"].get();
-	boxRitem->Geo = mGeometries["boxGeo"].get();
-	boxRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-	boxRitem->IndexCount = boxRitem->Geo->DrawArgs["box"].IndexCount;
-	boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
-	boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
+	//auto boxRitem = std::make_unique<RenderItem>();
+	//XMStoreFloat4x4(&boxRitem->World, XMMatrixTranslation(3.0f, 2.0f, -9.0f));
+	//boxRitem->ObjCBIndex = cbindex++;
+	//boxRitem->Mat = mMaterials["wirefence"].get();
+	//boxRitem->Geo = mGeometries["boxGeo"].get();
+	//boxRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	//boxRitem->IndexCount = boxRitem->Geo->DrawArgs["box"].IndexCount;
+	//boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
+	//boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
 
-	mRitemLayer[(int)RenderLayer::Opaque].push_back(boxRitem.get());
-	mAllRitems.push_back(std::move(boxRitem));*/
+	//mRitemLayer[(int)RenderLayer::Opaque].push_back(boxRitem.get());
+	//mAllRitems.push_back(std::move(boxRitem));
 
 	
-	auto gridRitem2 = std::make_unique<RenderItem>();
+	/*auto gridRitem2 = std::make_unique<RenderItem>();
 	gridRitem2->World = MathHelper::Identity4x4();
 	gridRitem2->ObjCBIndex = cbindex++;
 	gridRitem2->Mat = mMaterials["wirefence"].get();
@@ -1491,7 +1499,7 @@ void TexWavesApp::BuildRenderItems()
 	gridRitem2->BaseVertexLocation = gridRitem2->Geo->DrawArgs["ground"].BaseVertexLocation;
 	
 	mRitemLayer[(int)RenderLayer::Opaque].push_back(gridRitem2.get());
-	mAllRitems.push_back(std::move(gridRitem2));
+	mAllRitems.push_back(std::move(gridRitem2));*/
 
 
 	auto backWall = std::make_unique<RenderItem>();
