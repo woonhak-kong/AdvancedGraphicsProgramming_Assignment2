@@ -585,11 +585,19 @@ void TexWavesApp::LoadTextures()
 		mCommandList.Get(), stoneTex->Filename.c_str(),
 		stoneTex->Resource, stoneTex->UploadHeap));
 
+	auto stone2Tex = std::make_unique<Texture>();
+	stone2Tex->Name = "stone2Tex";
+	stone2Tex->Filename = L"../Textures/stone1.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), stone2Tex->Filename.c_str(),
+		stone2Tex->Resource, stone2Tex->UploadHeap));
+
 
 	mTextures[grassTex->Name] = std::move(grassTex);
 	mTextures[waterTex->Name] = std::move(waterTex);
 	mTextures[fenceTex->Name] = std::move(fenceTex);
 	mTextures[stoneTex->Name] = std::move(stoneTex);
+	mTextures[stone2Tex->Name] = std::move(stone2Tex);
 }
 
 void TexWavesApp::BuildRootSignature()
@@ -638,7 +646,7 @@ void TexWavesApp::BuildDescriptorHeaps()
 	// Create the SRV heap.
 	//
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = 4;
+	srvHeapDesc.NumDescriptors = 5;
 	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvDescriptorHeap)));
@@ -652,6 +660,7 @@ void TexWavesApp::BuildDescriptorHeaps()
 	auto waterTex = mTextures["waterTex"]->Resource;
 	auto fenceTex = mTextures["fenceTex"]->Resource;
 	auto stoneTex = mTextures["stoneTex"]->Resource;
+	auto stone2Tex = mTextures["stone2Tex"]->Resource;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -678,6 +687,12 @@ void TexWavesApp::BuildDescriptorHeaps()
 
 	srvDesc.Format = stoneTex->GetDesc().Format;
 	md3dDevice->CreateShaderResourceView(stoneTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = stone2Tex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(stone2Tex.Get(), &srvDesc, hDescriptor);
 }
 
 void TexWavesApp::BuildShadersAndInputLayout()
@@ -1161,10 +1176,13 @@ void TexWavesApp::BuildFrameResources()
 
 void TexWavesApp::BuildMaterials()
 {
+
+	int cbi = 0;
+	int SHI = 0;
 	auto grass = std::make_unique<Material>();
 	grass->Name = "grass";
-	grass->MatCBIndex = 0;
-	grass->DiffuseSrvHeapIndex = 0;
+	grass->MatCBIndex = cbi++;
+	grass->DiffuseSrvHeapIndex = SHI++;
 	grass->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	grass->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
 	grass->Roughness = 0.125f;
@@ -1173,32 +1191,41 @@ void TexWavesApp::BuildMaterials()
 	// tools we need (transparency, environment reflection), so we fake it for now.
 	auto water = std::make_unique<Material>();
 	water->Name = "water";
-	water->MatCBIndex = 1;
-	water->DiffuseSrvHeapIndex = 1;
+	water->MatCBIndex = cbi++;
+	water->DiffuseSrvHeapIndex = SHI++;
 	water->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	water->FresnelR0 = XMFLOAT3(0.2f, 0.2f, 0.2f);
 	water->Roughness = 0.0f;
 
 	auto wirefence = std::make_unique<Material>();
 	wirefence->Name = "wirefence";
-	wirefence->MatCBIndex = 2;
-	wirefence->DiffuseSrvHeapIndex = 2;
+	wirefence->MatCBIndex = cbi++;
+	wirefence->DiffuseSrvHeapIndex = SHI++;
 	wirefence->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	wirefence->FresnelR0 = XMFLOAT3(0.1f, 0.1f, 0.1f);
 	wirefence->Roughness = 0.25f;
 
 	auto stone = std::make_unique<Material>();
 	stone->Name = "stone";
-	stone->MatCBIndex = 3;
-	stone->DiffuseSrvHeapIndex = 3;
+	stone->MatCBIndex = cbi++;
+	stone->DiffuseSrvHeapIndex = SHI++;
 	stone->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	stone->FresnelR0 = XMFLOAT3(0.1f, 0.1f, 0.1f);
 	stone->Roughness = 0.25f;
+
+	auto stone2 = std::make_unique<Material>();
+	stone2->Name = "stone2";
+	stone2->MatCBIndex = cbi++;
+	stone2->DiffuseSrvHeapIndex = SHI++;
+	stone2->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	stone2->FresnelR0 = XMFLOAT3(0.1f, 0.1f, 0.1f);
+	stone2->Roughness = 0.25f;
 
 	mMaterials["grass"] = std::move(grass);
 	mMaterials["water"] = std::move(water);
 	mMaterials["wirefence"] = std::move(wirefence);
 	mMaterials["stone"] = std::move(stone);
+	mMaterials["stone2"] = std::move(stone2);
 }
 
 void TexWavesApp::BuildRenderItems()
@@ -1339,8 +1366,9 @@ void TexWavesApp::BuildRenderItems()
 
 	auto columnFrontLeft = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&columnFrontLeft->World, XMMatrixScaling(2.0f, 10.0f, 2.0f) * XMMatrixTranslation(-9.0f, 5.0f, -9.0f));
+	XMStoreFloat4x4(&columnFrontLeft->TexTransform, XMMatrixScaling(2.0f, 4.0f, 1.0f));
 	columnFrontLeft->ObjCBIndex = cbindex++;
-	columnFrontLeft->Mat = mMaterials["wirefence"].get();
+	columnFrontLeft->Mat = mMaterials["stone2"].get();
 	columnFrontLeft->Geo = mGeometries["shapeGeo"].get();
 	columnFrontLeft->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	columnFrontLeft->IndexCount = columnFrontLeft->Geo->DrawArgs["column"].IndexCount;
@@ -1350,8 +1378,9 @@ void TexWavesApp::BuildRenderItems()
 
 	auto columnFrontRight = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&columnFrontRight->World, XMMatrixScaling(2.0f, 10.0f, 2.0f) * XMMatrixTranslation(9.0f, 5.0f, -9.0f));
+	XMStoreFloat4x4(&columnFrontRight->TexTransform, XMMatrixScaling(2.0f, 4.0f, 1.0f));
 	columnFrontRight->ObjCBIndex = cbindex++;
-	columnFrontRight->Mat = mMaterials["wirefence"].get();
+	columnFrontRight->Mat = mMaterials["stone2"].get();
 	columnFrontRight->Geo = mGeometries["shapeGeo"].get();
 	columnFrontRight->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	columnFrontRight->IndexCount = columnFrontRight->Geo->DrawArgs["column"].IndexCount;
@@ -1361,8 +1390,9 @@ void TexWavesApp::BuildRenderItems()
 
 	auto columnBackLeft = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&columnBackLeft->World, XMMatrixScaling(2.0f, 10.0f, 2.0f) * XMMatrixTranslation(-9.0f, 5.0f, 9.0f));
+	XMStoreFloat4x4(&columnBackLeft->TexTransform, XMMatrixScaling(2.0f, 4.0f, 1.0f));
 	columnBackLeft->ObjCBIndex = cbindex++;
-	columnBackLeft->Mat = mMaterials["wirefence"].get();
+	columnBackLeft->Mat = mMaterials["stone2"].get();
 	columnBackLeft->Geo = mGeometries["shapeGeo"].get();
 	columnBackLeft->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	columnBackLeft->IndexCount = columnBackLeft->Geo->DrawArgs["column"].IndexCount;
@@ -1373,8 +1403,9 @@ void TexWavesApp::BuildRenderItems()
 
 	auto columnBackRight = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&columnBackRight->World, XMMatrixScaling(2.0f, 10.0f, 2.0f) * XMMatrixTranslation(9.0f, 5.0f, 9.0f));
+	XMStoreFloat4x4(&columnBackRight->TexTransform, XMMatrixScaling(2.0f, 4.0f, 1.0f));
 	columnBackRight->ObjCBIndex = cbindex++;
-	columnBackRight->Mat = mMaterials["wirefence"].get();
+	columnBackRight->Mat = mMaterials["stone2"].get();
 	columnBackRight->Geo = mGeometries["shapeGeo"].get();
 	columnBackRight->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	columnBackRight->IndexCount = columnBackRight->Geo->DrawArgs["column"].IndexCount;
