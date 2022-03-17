@@ -477,31 +477,34 @@ void TexWavesApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.TotalTime = gt.TotalTime();
 	mMainPassCB.DeltaTime = gt.DeltaTime();
 	mMainPassCB.AmbientLight = { 1, 1, 1, 1.0f };
-	
-	mMainPassCB.Lights[0].Position = { -9.0f, 13.0f, -9.0f };
-	mMainPassCB.Lights[0].Direction = { 0.0f, -5.0f, 0.0f };
-	mMainPassCB.Lights[0].Strength = { 0.541f, 0.984f, 1.0f };
-	mMainPassCB.Lights[0].SpotPower = 0.35;
 
-	mMainPassCB.Lights[1].Position = { 9.0f, 13.0f, -9.0f };
+	mMainPassCB.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
+	mMainPassCB.Lights[0].Strength = { 0.2f, 0.1f, 0.0f };
+	
+	mMainPassCB.Lights[1].Position = { -9.0f, 13.0f, -9.0f };
 	mMainPassCB.Lights[1].Direction = { 0.0f, -5.0f, 0.0f };
 	mMainPassCB.Lights[1].Strength = { 0.541f, 0.984f, 1.0f };
 	mMainPassCB.Lights[1].SpotPower = 0.35;
 
-	mMainPassCB.Lights[2].Position = { -9.0f, 13.0f, 9.0f };
+	mMainPassCB.Lights[2].Position = { 9.0f, 13.0f, -9.0f };
 	mMainPassCB.Lights[2].Direction = { 0.0f, -5.0f, 0.0f };
 	mMainPassCB.Lights[2].Strength = { 0.541f, 0.984f, 1.0f };
 	mMainPassCB.Lights[2].SpotPower = 0.35;
 
-	mMainPassCB.Lights[3].Position = { 9.0f, 13.0f, 9.0f };
+	mMainPassCB.Lights[3].Position = { -9.0f, 13.0f, 9.0f };
 	mMainPassCB.Lights[3].Direction = { 0.0f, -5.0f, 0.0f };
 	mMainPassCB.Lights[3].Strength = { 0.541f, 0.984f, 1.0f };
 	mMainPassCB.Lights[3].SpotPower = 0.35;
 
-	mMainPassCB.Lights[4].Position = { 0.0f, 18.0f, 0.0f };
+	mMainPassCB.Lights[4].Position = { 9.0f, 13.0f, 9.0f };
 	mMainPassCB.Lights[4].Direction = { 0.0f, -5.0f, 0.0f };
-	mMainPassCB.Lights[4].Strength = { 1, 0, 0 };
-	mMainPassCB.Lights[4].SpotPower = 0.95;
+	mMainPassCB.Lights[4].Strength = { 0.541f, 0.984f, 1.0f };
+	mMainPassCB.Lights[4].SpotPower = 0.35;
+
+	mMainPassCB.Lights[5].Position = { 0.0f, 18.0f, 0.0f };
+	mMainPassCB.Lights[5].Direction = { 0.0f, -5.0f, 0.0f };
+	mMainPassCB.Lights[5].Strength = { 1, 0, 0 };
+	mMainPassCB.Lights[5].SpotPower = 0.95;
 
 	//mMainPassCB.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
 	//mMainPassCB.Lights[1].Strength = { 0.5f, 0.5f, 0.5f };
@@ -575,9 +578,18 @@ void TexWavesApp::LoadTextures()
 		mCommandList.Get(), fenceTex->Filename.c_str(),
 		fenceTex->Resource, fenceTex->UploadHeap));
 
+	auto stoneTex = std::make_unique<Texture>();
+	stoneTex->Name = "stoneTex";
+	stoneTex->Filename = L"../Textures/stone2.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), stoneTex->Filename.c_str(),
+		stoneTex->Resource, stoneTex->UploadHeap));
+
+
 	mTextures[grassTex->Name] = std::move(grassTex);
 	mTextures[waterTex->Name] = std::move(waterTex);
 	mTextures[fenceTex->Name] = std::move(fenceTex);
+	mTextures[stoneTex->Name] = std::move(stoneTex);
 }
 
 void TexWavesApp::BuildRootSignature()
@@ -626,7 +638,7 @@ void TexWavesApp::BuildDescriptorHeaps()
 	// Create the SRV heap.
 	//
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = 3;
+	srvHeapDesc.NumDescriptors = 4;
 	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvDescriptorHeap)));
@@ -639,6 +651,7 @@ void TexWavesApp::BuildDescriptorHeaps()
 	auto grassTex = mTextures["grassTex"]->Resource;
 	auto waterTex = mTextures["waterTex"]->Resource;
 	auto fenceTex = mTextures["fenceTex"]->Resource;
+	auto stoneTex = mTextures["stoneTex"]->Resource;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -659,6 +672,12 @@ void TexWavesApp::BuildDescriptorHeaps()
 
 	srvDesc.Format = fenceTex->GetDesc().Format;
 	md3dDevice->CreateShaderResourceView(fenceTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = stoneTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(stoneTex.Get(), &srvDesc, hDescriptor);
 }
 
 void TexWavesApp::BuildShadersAndInputLayout()
@@ -1168,9 +1187,18 @@ void TexWavesApp::BuildMaterials()
 	wirefence->FresnelR0 = XMFLOAT3(0.1f, 0.1f, 0.1f);
 	wirefence->Roughness = 0.25f;
 
+	auto stone = std::make_unique<Material>();
+	stone->Name = "stone";
+	stone->MatCBIndex = 3;
+	stone->DiffuseSrvHeapIndex = 3;
+	stone->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	stone->FresnelR0 = XMFLOAT3(0.1f, 0.1f, 0.1f);
+	stone->Roughness = 0.25f;
+
 	mMaterials["grass"] = std::move(grass);
 	mMaterials["water"] = std::move(water);
 	mMaterials["wirefence"] = std::move(wirefence);
+	mMaterials["stone"] = std::move(stone);
 }
 
 void TexWavesApp::BuildRenderItems()
@@ -1239,7 +1267,7 @@ void TexWavesApp::BuildRenderItems()
 	auto backWall = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&backWall->World, XMMatrixScaling(18.0f, 8.0f, 0.5f) * XMMatrixTranslation(0.0f, 4.0f, 9.0f));
 	backWall->ObjCBIndex = cbindex++;
-	backWall->Mat = mMaterials["wirefence"].get();
+	backWall->Mat = mMaterials["stone"].get();
 	backWall->Geo = mGeometries["shapeGeo"].get();
 	backWall->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	backWall->IndexCount = backWall->Geo->DrawArgs["wholeWall"].IndexCount;
