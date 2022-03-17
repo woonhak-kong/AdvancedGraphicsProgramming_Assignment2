@@ -55,6 +55,9 @@ struct RenderItem
 enum class RenderLayer : int
 {
 	Opaque = 0,
+	//step1
+	Transparent,
+	AlphaTested,
 	Count
 };
 
@@ -274,7 +277,8 @@ void TexWavesApp::Draw(const GameTimer& gt)
 		D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
     // Clear the back buffer and depth buffer.
-    mCommandList->ClearRenderTargetView(CurrentBackBufferView(), Colors::LightSteelBlue, 0, nullptr);
+	const XMVECTORF32 color = { {{1.0f, 0.32f, 0.32f, 1.0f}} };
+    mCommandList->ClearRenderTargetView(CurrentBackBufferView(), color, 0, nullptr);
     mCommandList->ClearDepthStencilView(DepthStencilView(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
     // Specify the buffers we are going to render to.
@@ -289,6 +293,29 @@ void TexWavesApp::Draw(const GameTimer& gt)
 	mCommandList->SetGraphicsRootConstantBufferView(2, passCB->GetGPUVirtualAddress());
 
     DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)RenderLayer::Opaque]);
+
+	//////
+	//step 2
+	mCommandList->SetPipelineState(mPSOs["alphaTested"].Get());
+	DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)RenderLayer::AlphaTested]);
+
+	//when you draw, you can set the blend factor that modulate values for a pixel shader, render target, or both.
+	//You could also use the following blend factor when you set your blend to D3D12_BLEND_BLEND_FACTOR in PSO like following:	
+	//transparencyBlendDesc.SrcBlend = D3D12_BLEND_BLEND_FACTOR;
+	//transparencyBlendDesc.DestBlend = D3D12_BLEND_INV_BLEND_FACTOR;
+	//and then we set the blend factor here!
+
+	//float blendFactor[4] = { 0.9f, 0.9f, 0.9f, 1.f };  //change that water to high opacity
+	//float blendFactor[4] = { 0.3f, 0.3f, 0.3f, 1.f };  //change the water to high transparency
+	//mCommandList->OMSetBlendFactor(blendFactor);
+
+	mCommandList->SetPipelineState(mPSOs["transparent"].Get());
+	DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)RenderLayer::Transparent]);
+	//////
+
+
+
+
 
     // Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
@@ -476,7 +503,7 @@ void TexWavesApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.FarZ = 1000.0f;
 	mMainPassCB.TotalTime = gt.TotalTime();
 	mMainPassCB.DeltaTime = gt.DeltaTime();
-	mMainPassCB.AmbientLight = { 0.6f, 0.6f, 0.6f, 1.0f };
+	mMainPassCB.AmbientLight = { 0.4f, 0.4f, 0.4f, 1.0f };
 
 	mMainPassCB.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
 	mMainPassCB.Lights[0].Strength = { 0.5f, 0.1f, 0.0f };
@@ -764,8 +791,23 @@ void TexWavesApp::BuildDescriptorHeaps()
 
 void TexWavesApp::BuildShadersAndInputLayout()
 {
+
+	/*const D3D_SHADER_MACRO defines[] =
+	{
+		"FOG", "1",
+		NULL, NULL
+	};*/
+
+	const D3D_SHADER_MACRO alphaTestDefines[] =
+	{
+		"FOG", "1",
+		"ALPHA_TEST",
+		NULL, NULL
+	};
+
 	mShaders["standardVS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", nullptr, "VS", "vs_5_0");
 	mShaders["opaquePS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", nullptr, "PS", "ps_5_0");
+	mShaders["alphaTestedPS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", alphaTestDefines, "PS", "ps_5_1");
 	
     mInputLayout =
     {
@@ -1230,6 +1272,59 @@ void TexWavesApp::BuildPSOs()
 	opaquePsoDesc.SampleDesc.Quality = m4xMsaaState ? (m4xMsaaQuality - 1) : 0;
 	opaquePsoDesc.DSVFormat = mDepthStencilFormat;
     ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&opaquePsoDesc, IID_PPV_ARGS(&mPSOs["opaque"])));
+
+	// step1:
+	// PSO for transparent objects
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC transparentPsoDesc = opaquePsoDesc;
+
+	D3D12_RENDER_TARGET_BLEND_DESC transparencyBlendDesc;
+	transparencyBlendDesc.BlendEnable = true;
+	transparencyBlendDesc.LogicOpEnable = false;
+
+	//! suppose that we want to blend the source and destination pixels based on the opacity of the source pixel :
+	//! source blend factor : D3D12_BLEND_SRC_ALPHA
+	//! destination blend factor : D3D12_BLEND_INV_SRC_ALPHA
+	//! blend operator : D3D12_BLEND_OP_ADD
+
+
+	transparencyBlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+	transparencyBlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+
+	//! you could  specify the blend factor or not..
+	//! F = (r, g, b) and F = a, where the color (r, g, b,a) is supplied to the  parameter of the ID3D12GraphicsCommandList::OMSetBlendFactor method.
+	//! transparencyBlendDesc.SrcBlend = D3D12_BLEND_BLEND_FACTOR;
+	//! transparencyBlendDesc.DestBlend = D3D12_BLEND_INV_BLEND_FACTOR;
+
+	//! @note try different blend operators to see the blending effects
+	//! D3D12_BLEND_OP_ADD,
+	//! D3D12_BLEND_OP_SUBTRACT,
+	//! D3D12_BLEND_OP_REV_SUBTRACT,
+	//! D3D12_BLEND_OP_MIN,
+	//! D3D12_BLEND_OP_MAX
+
+	transparencyBlendDesc.BlendOp = D3D12_BLEND_OP_ADD,
+
+		transparencyBlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+	transparencyBlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
+	transparencyBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+	transparencyBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+	transparencyBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	//transparencyBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_BLUE;
+	//Direct3D supports rendering to up to eight render targets simultaneously.
+	transparentPsoDesc.BlendState.RenderTarget[0] = transparencyBlendDesc;
+	ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&transparentPsoDesc, IID_PPV_ARGS(&mPSOs["transparent"])));
+
+	// PSO for alpha tested objects
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC alphaTestedPsoDesc = opaquePsoDesc;
+	alphaTestedPsoDesc.PS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["alphaTestedPS"]->GetBufferPointer()),
+		mShaders["alphaTestedPS"]->GetBufferSize()
+	};
+	alphaTestedPsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&alphaTestedPsoDesc, IID_PPV_ARGS(&mPSOs["alphaTested"])));
 }
 
 void TexWavesApp::BuildFrameResources()
@@ -1260,8 +1355,8 @@ void TexWavesApp::BuildMaterials()
 	water->Name = "water";
 	water->MatCBIndex = cbi++;
 	water->DiffuseSrvHeapIndex = SHI++;
-	water->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	water->FresnelR0 = XMFLOAT3(0.6f, 0.6f, 0.6f);
+	water->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f);
+	water->FresnelR0 = XMFLOAT3(0.1f, 0.1f, 0.1f);
 	water->Roughness = 0.0f;
 
 	auto wirefence = std::make_unique<Material>();
@@ -1351,11 +1446,12 @@ void TexWavesApp::BuildRenderItems()
 	//// we use mVavesRitem in updatewaves() to set the dynamic VB of the wave renderitem to the current frame VB.
     mWavesRitem = wavesRitem.get();
 
+	mRitemLayer[(int)RenderLayer::Transparent].push_back(wavesRitem.get());
 	mAllRitems.push_back(std::move(wavesRitem));
 	
 	//mRitemLayer[(int)RenderLayer::Opaque].push_back(wavesRitem.get());
 
-   /* auto gridRitem = std::make_unique<RenderItem>();
+    /*auto gridRitem = std::make_unique<RenderItem>();
     gridRitem->World = MathHelper::Identity4x4();
 	XMStoreFloat4x4(&gridRitem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f));
 	gridRitem->ObjCBIndex = cbindex++;
@@ -1366,11 +1462,11 @@ void TexWavesApp::BuildRenderItems()
     gridRitem->StartIndexLocation = gridRitem->Geo->DrawArgs["grid"].StartIndexLocation;
     gridRitem->BaseVertexLocation = gridRitem->Geo->DrawArgs["grid"].BaseVertexLocation;
 
-	mAllRitems.push_back(std::move(gridRitem));*/
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(gridRitem.get());
+	mAllRitems.push_back(std::move(gridRitem));
 	
-	//mRitemLayer[(int)RenderLayer::Opaque].push_back(gridRitem.get());
 
-	/*auto boxRitem = std::make_unique<RenderItem>();
+	auto boxRitem = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&boxRitem->World, XMMatrixTranslation(3.0f, 2.0f, -9.0f));
 	boxRitem->ObjCBIndex = cbindex++;
 	boxRitem->Mat = mMaterials["wirefence"].get();
@@ -1380,8 +1476,8 @@ void TexWavesApp::BuildRenderItems()
 	boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
 	boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
 
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(boxRitem.get());
 	mAllRitems.push_back(std::move(boxRitem));*/
-	//mRitemLayer[(int)RenderLayer::Opaque].push_back(boxRitem.get());
 
 	
 	auto gridRitem2 = std::make_unique<RenderItem>();
@@ -1393,6 +1489,8 @@ void TexWavesApp::BuildRenderItems()
 	gridRitem2->IndexCount = gridRitem2->Geo->DrawArgs["ground"].IndexCount;
 	gridRitem2->StartIndexLocation = gridRitem2->Geo->DrawArgs["ground"].StartIndexLocation;
 	gridRitem2->BaseVertexLocation = gridRitem2->Geo->DrawArgs["ground"].BaseVertexLocation;
+	
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(gridRitem2.get());
 	mAllRitems.push_back(std::move(gridRitem2));
 
 
@@ -1407,6 +1505,8 @@ void TexWavesApp::BuildRenderItems()
 	backWall->IndexCount = backWall->Geo->DrawArgs["wholeWall"].IndexCount;
 	backWall->StartIndexLocation = backWall->Geo->DrawArgs["wholeWall"].StartIndexLocation;
 	backWall->BaseVertexLocation = backWall->Geo->DrawArgs["wholeWall"].BaseVertexLocation;
+	
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(backWall.get());
 	mAllRitems.push_back(std::move(backWall));
 
 	auto leftWall = std::make_unique<RenderItem>();
@@ -1419,6 +1519,7 @@ void TexWavesApp::BuildRenderItems()
 	leftWall->IndexCount = leftWall->Geo->DrawArgs["wholeWall"].IndexCount;
 	leftWall->StartIndexLocation = leftWall->Geo->DrawArgs["wholeWall"].StartIndexLocation;
 	leftWall->BaseVertexLocation = leftWall->Geo->DrawArgs["wholeWall"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(leftWall.get());
 	mAllRitems.push_back(std::move(leftWall));
 
 	auto rightWall = std::make_unique<RenderItem>();
@@ -1431,6 +1532,7 @@ void TexWavesApp::BuildRenderItems()
 	rightWall->IndexCount = rightWall->Geo->DrawArgs["wholeWall"].IndexCount;
 	rightWall->StartIndexLocation = rightWall->Geo->DrawArgs["wholeWall"].StartIndexLocation;
 	rightWall->BaseVertexLocation = rightWall->Geo->DrawArgs["wholeWall"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(rightWall.get());
 	mAllRitems.push_back(std::move(rightWall));
 
 	auto frontWall1 = std::make_unique<RenderItem>();
@@ -1443,6 +1545,7 @@ void TexWavesApp::BuildRenderItems()
 	frontWall1->IndexCount = frontWall1->Geo->DrawArgs["wholeWall"].IndexCount;
 	frontWall1->StartIndexLocation = frontWall1->Geo->DrawArgs["wholeWall"].StartIndexLocation;
 	frontWall1->BaseVertexLocation = frontWall1->Geo->DrawArgs["wholeWall"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(frontWall1.get());
 	mAllRitems.push_back(std::move(frontWall1));
 
 	auto frontWall2 = std::make_unique<RenderItem>();
@@ -1455,6 +1558,7 @@ void TexWavesApp::BuildRenderItems()
 	frontWall2->IndexCount = frontWall2->Geo->DrawArgs["wholeWall"].IndexCount;
 	frontWall2->StartIndexLocation = frontWall2->Geo->DrawArgs["wholeWall"].StartIndexLocation;
 	frontWall2->BaseVertexLocation = frontWall2->Geo->DrawArgs["wholeWall"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(frontWall2.get());
 	mAllRitems.push_back(std::move(frontWall2));
 
 	auto frontWall3 = std::make_unique<RenderItem>();
@@ -1467,6 +1571,7 @@ void TexWavesApp::BuildRenderItems()
 	frontWall3->IndexCount = frontWall3->Geo->DrawArgs["wholeWall"].IndexCount;
 	frontWall3->StartIndexLocation = frontWall3->Geo->DrawArgs["wholeWall"].StartIndexLocation;
 	frontWall3->BaseVertexLocation = frontWall3->Geo->DrawArgs["wholeWall"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(frontWall3.get());
 	mAllRitems.push_back(std::move(frontWall3));
 
 	auto columnFrontLeft = std::make_unique<RenderItem>();
@@ -1479,6 +1584,7 @@ void TexWavesApp::BuildRenderItems()
 	columnFrontLeft->IndexCount = columnFrontLeft->Geo->DrawArgs["column"].IndexCount;
 	columnFrontLeft->StartIndexLocation = columnFrontLeft->Geo->DrawArgs["column"].StartIndexLocation;
 	columnFrontLeft->BaseVertexLocation = columnFrontLeft->Geo->DrawArgs["column"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(columnFrontLeft.get());
 	mAllRitems.push_back(std::move(columnFrontLeft));
 
 	auto columnFrontRight = std::make_unique<RenderItem>();
@@ -1491,6 +1597,7 @@ void TexWavesApp::BuildRenderItems()
 	columnFrontRight->IndexCount = columnFrontRight->Geo->DrawArgs["column"].IndexCount;
 	columnFrontRight->StartIndexLocation = columnFrontRight->Geo->DrawArgs["column"].StartIndexLocation;
 	columnFrontRight->BaseVertexLocation = columnFrontRight->Geo->DrawArgs["column"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(columnFrontRight.get());
 	mAllRitems.push_back(std::move(columnFrontRight));
 
 	auto columnBackLeft = std::make_unique<RenderItem>();
@@ -1503,6 +1610,7 @@ void TexWavesApp::BuildRenderItems()
 	columnBackLeft->IndexCount = columnBackLeft->Geo->DrawArgs["column"].IndexCount;
 	columnBackLeft->StartIndexLocation = columnBackLeft->Geo->DrawArgs["column"].StartIndexLocation;
 	columnBackLeft->BaseVertexLocation = columnBackLeft->Geo->DrawArgs["column"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(columnBackLeft.get());
 	mAllRitems.push_back(std::move(columnBackLeft));
 
 
@@ -1516,6 +1624,7 @@ void TexWavesApp::BuildRenderItems()
 	columnBackRight->IndexCount = columnBackRight->Geo->DrawArgs["column"].IndexCount;
 	columnBackRight->StartIndexLocation = columnBackRight->Geo->DrawArgs["column"].StartIndexLocation;
 	columnBackRight->BaseVertexLocation = columnBackRight->Geo->DrawArgs["column"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(columnBackRight.get());
 	mAllRitems.push_back(std::move(columnBackRight));
 
 	auto columnTopFLeft = std::make_unique<RenderItem>();
@@ -1527,6 +1636,7 @@ void TexWavesApp::BuildRenderItems()
 	columnTopFLeft->IndexCount = columnTopFLeft->Geo->DrawArgs["columnTop"].IndexCount;
 	columnTopFLeft->StartIndexLocation = columnTopFLeft->Geo->DrawArgs["columnTop"].StartIndexLocation;
 	columnTopFLeft->BaseVertexLocation = columnTopFLeft->Geo->DrawArgs["columnTop"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(columnTopFLeft.get());
 	mAllRitems.push_back(std::move(columnTopFLeft));
 
 	auto columnTopFRight = std::make_unique<RenderItem>();
@@ -1538,6 +1648,7 @@ void TexWavesApp::BuildRenderItems()
 	columnTopFRight->IndexCount = columnTopFRight->Geo->DrawArgs["columnTop"].IndexCount;
 	columnTopFRight->StartIndexLocation = columnTopFRight->Geo->DrawArgs["columnTop"].StartIndexLocation;
 	columnTopFRight->BaseVertexLocation = columnTopFRight->Geo->DrawArgs["columnTop"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(columnTopFRight.get());
 	mAllRitems.push_back(std::move(columnTopFRight));
 
 
@@ -1550,6 +1661,7 @@ void TexWavesApp::BuildRenderItems()
 	columnTopBLeft->IndexCount = columnTopBLeft->Geo->DrawArgs["columnTop"].IndexCount;
 	columnTopBLeft->StartIndexLocation = columnTopBLeft->Geo->DrawArgs["columnTop"].StartIndexLocation;
 	columnTopBLeft->BaseVertexLocation = columnTopBLeft->Geo->DrawArgs["columnTop"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(columnTopBLeft.get());
 	mAllRitems.push_back(std::move(columnTopBLeft));
 
 
@@ -1562,6 +1674,7 @@ void TexWavesApp::BuildRenderItems()
 	columnTopBRight->IndexCount = columnTopBRight->Geo->DrawArgs["columnTop"].IndexCount;
 	columnTopBRight->StartIndexLocation = columnTopBRight->Geo->DrawArgs["columnTop"].StartIndexLocation;
 	columnTopBRight->BaseVertexLocation = columnTopBRight->Geo->DrawArgs["columnTop"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(columnTopBRight.get());
 	mAllRitems.push_back(std::move(columnTopBRight));
 
 	auto Base1 = std::make_unique<RenderItem>();
@@ -1574,6 +1687,7 @@ void TexWavesApp::BuildRenderItems()
 	Base1->IndexCount = Base1->Geo->DrawArgs["Base1"].IndexCount;
 	Base1->StartIndexLocation = Base1->Geo->DrawArgs["Base1"].StartIndexLocation;
 	Base1->BaseVertexLocation = Base1->Geo->DrawArgs["Base1"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(Base1.get());
 	mAllRitems.push_back(std::move(Base1));
 
 	auto Base2 = std::make_unique<RenderItem>();
@@ -1586,6 +1700,7 @@ void TexWavesApp::BuildRenderItems()
 	Base2->IndexCount = Base2->Geo->DrawArgs["Base2"].IndexCount;
 	Base2->StartIndexLocation = Base2->Geo->DrawArgs["Base2"].StartIndexLocation;
 	Base2->BaseVertexLocation = Base2->Geo->DrawArgs["Base2"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(Base2.get());
 	mAllRitems.push_back(std::move(Base2));
 
 	auto Base3 = std::make_unique<RenderItem>();
@@ -1597,6 +1712,7 @@ void TexWavesApp::BuildRenderItems()
 	Base3->IndexCount = Base3->Geo->DrawArgs["Base3"].IndexCount;
 	Base3->StartIndexLocation = Base3->Geo->DrawArgs["Base3"].StartIndexLocation;
 	Base3->BaseVertexLocation = Base3->Geo->DrawArgs["Base3"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(Base3.get());
 	mAllRitems.push_back(std::move(Base3));
 
 	auto top = std::make_unique<RenderItem>();
@@ -1608,14 +1724,15 @@ void TexWavesApp::BuildRenderItems()
 	top->IndexCount = top->Geo->DrawArgs["top"].IndexCount;
 	top->StartIndexLocation = top->Geo->DrawArgs["top"].StartIndexLocation;
 	top->BaseVertexLocation = top->Geo->DrawArgs["top"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(top.get());
 	mAllRitems.push_back(std::move(top));
 
 
 
 	//mRitemLayer[(int)RenderLayer::Opaque].push_back(gridRitem.get());
 	// All the render items are opaque.
-	for (auto& e : mAllRitems)
-		mRitemLayer[(int)RenderLayer::Opaque].push_back(e.get());
+	/*for (auto& e : mAllRitems)
+		mRitemLayer[(int)RenderLayer::Opaque].push_back(e.get());*/
 	
 }
 
