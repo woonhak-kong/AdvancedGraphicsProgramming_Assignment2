@@ -1297,8 +1297,8 @@ void TexWavesApp::BuildMaterials()
 	carpet->MatCBIndex = cbi++;
 	carpet->DiffuseSrvHeapIndex = SHI++;
 	carpet->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	carpet->FresnelR0 = XMFLOAT3(0.1f, 0.1f, 0.1f);
-	carpet->Roughness = 0.5f;
+	carpet->FresnelR0 = XMFLOAT3(0.8f, 0.8f, 0.8f);
+	carpet->Roughness = 0.2f;
 
 	auto emerald = std::make_unique<Material>();
 	emerald->Name = "emerald";
@@ -1562,8 +1562,9 @@ void TexWavesApp::BuildRenderItems()
 
 	auto Base1 = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&Base1->World, XMMatrixScaling(14.0f, 6.0f, 14.0f) * XMMatrixTranslation(0.0f, 3.0f, 0.0f));
+	XMStoreFloat4x4(&Base1->TexTransform, XMMatrixScaling(6.0f, 3.0f, 1.0f));
 	Base1->ObjCBIndex = cbindex++;
-	Base1->Mat = mMaterials["wirefence"].get();
+	Base1->Mat = mMaterials["carpet"].get();
 	Base1->Geo = mGeometries["shapeGeo"].get();
 	Base1->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	Base1->IndexCount = Base1->Geo->DrawArgs["Base1"].IndexCount;
@@ -1573,8 +1574,9 @@ void TexWavesApp::BuildRenderItems()
 
 	auto Base2 = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&Base2->World, XMMatrixScaling(10.0f, 4.0f, 10.0f) * XMMatrixTranslation(0.0f, 8.0f, 0.0f));
+	XMStoreFloat4x4(&Base2->TexTransform, XMMatrixScaling(6.0f, 1.0f, 1.0f));
 	Base2->ObjCBIndex = cbindex++;
-	Base2->Mat = mMaterials["wirefence"].get();
+	Base2->Mat = mMaterials["tiger_gem"].get();
 	Base2->Geo = mGeometries["shapeGeo"].get();
 	Base2->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	Base2->IndexCount = Base2->Geo->DrawArgs["Base2"].IndexCount;
