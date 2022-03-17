@@ -476,30 +476,30 @@ void TexWavesApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.FarZ = 1000.0f;
 	mMainPassCB.TotalTime = gt.TotalTime();
 	mMainPassCB.DeltaTime = gt.DeltaTime();
-	mMainPassCB.AmbientLight = { 1, 1, 1, 1.0f };
+	mMainPassCB.AmbientLight = { 0.6f, 0.6f, 0.6f, 1.0f };
 
 	mMainPassCB.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
-	mMainPassCB.Lights[0].Strength = { 0.2f, 0.1f, 0.0f };
+	mMainPassCB.Lights[0].Strength = { 0.5f, 0.1f, 0.0f };
 	
 	mMainPassCB.Lights[1].Position = { -9.0f, 13.0f, -9.0f };
 	mMainPassCB.Lights[1].Direction = { 0.0f, -5.0f, 0.0f };
 	mMainPassCB.Lights[1].Strength = { 0.541f, 0.984f, 1.0f };
-	mMainPassCB.Lights[1].SpotPower = 0.35;
+	mMainPassCB.Lights[1].SpotPower = 0.45;
 
 	mMainPassCB.Lights[2].Position = { 9.0f, 13.0f, -9.0f };
 	mMainPassCB.Lights[2].Direction = { 0.0f, -5.0f, 0.0f };
 	mMainPassCB.Lights[2].Strength = { 0.541f, 0.984f, 1.0f };
-	mMainPassCB.Lights[2].SpotPower = 0.35;
+	mMainPassCB.Lights[2].SpotPower = 0.45;
 
 	mMainPassCB.Lights[3].Position = { -9.0f, 13.0f, 9.0f };
 	mMainPassCB.Lights[3].Direction = { 0.0f, -5.0f, 0.0f };
 	mMainPassCB.Lights[3].Strength = { 0.541f, 0.984f, 1.0f };
-	mMainPassCB.Lights[3].SpotPower = 0.35;
+	mMainPassCB.Lights[3].SpotPower = 0.45;
 
 	mMainPassCB.Lights[4].Position = { 9.0f, 13.0f, 9.0f };
 	mMainPassCB.Lights[4].Direction = { 0.0f, -5.0f, 0.0f };
 	mMainPassCB.Lights[4].Strength = { 0.541f, 0.984f, 1.0f };
-	mMainPassCB.Lights[4].SpotPower = 0.35;
+	mMainPassCB.Lights[4].SpotPower = 0.45;
 
 	mMainPassCB.Lights[5].Position = { 0.0f, 18.0f, 0.0f };
 	mMainPassCB.Lights[5].Direction = { 0.0f, -5.0f, 0.0f };
@@ -592,12 +592,46 @@ void TexWavesApp::LoadTextures()
 		mCommandList.Get(), stone2Tex->Filename.c_str(),
 		stone2Tex->Resource, stone2Tex->UploadHeap));
 
+	auto sapphireTex = std::make_unique<Texture>();
+	sapphireTex->Name = "sapphireTex";
+	sapphireTex->Filename = L"../Textures/sapphire.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), sapphireTex->Filename.c_str(),
+		sapphireTex->Resource, sapphireTex->UploadHeap));
+
+	auto carpetTex = std::make_unique<Texture>();
+	carpetTex->Name = "carpetTex";
+	carpetTex->Filename = L"../Textures/carpet.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), carpetTex->Filename.c_str(),
+		carpetTex->Resource, carpetTex->UploadHeap));
+
+	auto emeraldTex = std::make_unique<Texture>();
+	emeraldTex->Name = "emeraldTex";
+	emeraldTex->Filename = L"../Textures/emerald.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), emeraldTex->Filename.c_str(),
+		emeraldTex->Resource, emeraldTex->UploadHeap));
+
+	auto tiger_gemTex = std::make_unique<Texture>();
+	tiger_gemTex->Name = "tiger_gemTex";
+	tiger_gemTex->Filename = L"../Textures/tiger_gem.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), tiger_gemTex->Filename.c_str(),
+		tiger_gemTex->Resource, tiger_gemTex->UploadHeap));
+
 
 	mTextures[grassTex->Name] = std::move(grassTex);
 	mTextures[waterTex->Name] = std::move(waterTex);
 	mTextures[fenceTex->Name] = std::move(fenceTex);
 	mTextures[stoneTex->Name] = std::move(stoneTex);
 	mTextures[stone2Tex->Name] = std::move(stone2Tex);
+	mTextures[sapphireTex->Name] = std::move(sapphireTex);
+	mTextures[carpetTex->Name] = std::move(carpetTex);
+	mTextures[emeraldTex->Name] = std::move(emeraldTex);
+	mTextures[tiger_gemTex->Name] = std::move(tiger_gemTex);
+
+
 }
 
 void TexWavesApp::BuildRootSignature()
@@ -646,7 +680,7 @@ void TexWavesApp::BuildDescriptorHeaps()
 	// Create the SRV heap.
 	//
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = 5;
+	srvHeapDesc.NumDescriptors = 9;
 	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvDescriptorHeap)));
@@ -661,6 +695,11 @@ void TexWavesApp::BuildDescriptorHeaps()
 	auto fenceTex = mTextures["fenceTex"]->Resource;
 	auto stoneTex = mTextures["stoneTex"]->Resource;
 	auto stone2Tex = mTextures["stone2Tex"]->Resource;
+
+	auto sapphireTex = mTextures["sapphireTex"]->Resource;
+	auto carpetTex = mTextures["carpetTex"]->Resource;
+	auto emeraldTex = mTextures["emeraldTex"]->Resource;
+	auto tiger_gemTex = mTextures["tiger_gemTex"]->Resource;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -693,6 +732,30 @@ void TexWavesApp::BuildDescriptorHeaps()
 
 	srvDesc.Format = stone2Tex->GetDesc().Format;
 	md3dDevice->CreateShaderResourceView(stone2Tex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = sapphireTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(sapphireTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = carpetTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(carpetTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = emeraldTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(emeraldTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = tiger_gemTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(tiger_gemTex.Get(), &srvDesc, hDescriptor);
 }
 
 void TexWavesApp::BuildShadersAndInputLayout()
@@ -1194,7 +1257,7 @@ void TexWavesApp::BuildMaterials()
 	water->MatCBIndex = cbi++;
 	water->DiffuseSrvHeapIndex = SHI++;
 	water->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	water->FresnelR0 = XMFLOAT3(0.2f, 0.2f, 0.2f);
+	water->FresnelR0 = XMFLOAT3(0.6f, 0.6f, 0.6f);
 	water->Roughness = 0.0f;
 
 	auto wirefence = std::make_unique<Material>();
@@ -1221,11 +1284,49 @@ void TexWavesApp::BuildMaterials()
 	stone2->FresnelR0 = XMFLOAT3(0.1f, 0.1f, 0.1f);
 	stone2->Roughness = 0.25f;
 
+	auto sapphire = std::make_unique<Material>();
+	sapphire->Name = "sapphire";
+	sapphire->MatCBIndex = cbi++;
+	sapphire->DiffuseSrvHeapIndex = SHI++;
+	sapphire->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	sapphire->FresnelR0 = XMFLOAT3(0.9f, 0.9f, 0.9f);
+	sapphire->Roughness = 0.0f;
+
+	auto carpet = std::make_unique<Material>();
+	carpet->Name = "carpet";
+	carpet->MatCBIndex = cbi++;
+	carpet->DiffuseSrvHeapIndex = SHI++;
+	carpet->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	carpet->FresnelR0 = XMFLOAT3(0.1f, 0.1f, 0.1f);
+	carpet->Roughness = 0.5f;
+
+	auto emerald = std::make_unique<Material>();
+	emerald->Name = "emerald";
+	emerald->MatCBIndex = cbi++;
+	emerald->DiffuseSrvHeapIndex = SHI++;
+	emerald->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	emerald->FresnelR0 = XMFLOAT3(0.5f, 0.5f, 0.5f);
+	emerald->Roughness = 0.0f;
+
+	auto tiger_gem = std::make_unique<Material>();
+	tiger_gem->Name = "tiger_gem";
+	tiger_gem->MatCBIndex = cbi++;
+	tiger_gem->DiffuseSrvHeapIndex = SHI++;
+	tiger_gem->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	tiger_gem->FresnelR0 = XMFLOAT3(0.3f, 0.3f, 0.3f);
+	tiger_gem->Roughness = 0.1f;
+
 	mMaterials["grass"] = std::move(grass);
 	mMaterials["water"] = std::move(water);
 	mMaterials["wirefence"] = std::move(wirefence);
 	mMaterials["stone"] = std::move(stone);
 	mMaterials["stone2"] = std::move(stone2);
+
+	mMaterials["sapphire"] = std::move(sapphire);
+	mMaterials["carpet"] = std::move(carpet);
+	mMaterials["emerald"] = std::move(emerald);
+	mMaterials["tiger_gem"] = std::move(tiger_gem);
+	
 }
 
 void TexWavesApp::BuildRenderItems()
@@ -1416,7 +1517,7 @@ void TexWavesApp::BuildRenderItems()
 	auto columnTopFLeft = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&columnTopFLeft->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(-9.0f, 13.0f, -9.0f));
 	columnTopFLeft->ObjCBIndex = cbindex++;
-	columnTopFLeft->Mat = mMaterials["wirefence"].get();
+	columnTopFLeft->Mat = mMaterials["sapphire"].get();
 	columnTopFLeft->Geo = mGeometries["shapeGeo"].get();
 	columnTopFLeft->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	columnTopFLeft->IndexCount = columnTopFLeft->Geo->DrawArgs["columnTop"].IndexCount;
@@ -1427,7 +1528,7 @@ void TexWavesApp::BuildRenderItems()
 	auto columnTopFRight = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&columnTopFRight->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(9.0f, 13.0f, -9.0f));
 	columnTopFRight->ObjCBIndex = cbindex++;
-	columnTopFRight->Mat = mMaterials["wirefence"].get();
+	columnTopFRight->Mat = mMaterials["sapphire"].get();
 	columnTopFRight->Geo = mGeometries["shapeGeo"].get();
 	columnTopFRight->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	columnTopFRight->IndexCount = columnTopFRight->Geo->DrawArgs["columnTop"].IndexCount;
@@ -1439,7 +1540,7 @@ void TexWavesApp::BuildRenderItems()
 	auto columnTopBLeft = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&columnTopBLeft->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(-9.0f, 13.0f, 9.0f));
 	columnTopBLeft->ObjCBIndex = cbindex++;
-	columnTopBLeft->Mat = mMaterials["wirefence"].get();
+	columnTopBLeft->Mat = mMaterials["sapphire"].get();
 	columnTopBLeft->Geo = mGeometries["shapeGeo"].get();
 	columnTopBLeft->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	columnTopBLeft->IndexCount = columnTopBLeft->Geo->DrawArgs["columnTop"].IndexCount;
@@ -1451,7 +1552,7 @@ void TexWavesApp::BuildRenderItems()
 	auto columnTopBRight = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&columnTopBRight->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(9.0f, 13.0f, 9.0f));
 	columnTopBRight->ObjCBIndex = cbindex++;
-	columnTopBRight->Mat = mMaterials["wirefence"].get();
+	columnTopBRight->Mat = mMaterials["sapphire"].get();
 	columnTopBRight->Geo = mGeometries["shapeGeo"].get();
 	columnTopBRight->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	columnTopBRight->IndexCount = columnTopBRight->Geo->DrawArgs["columnTop"].IndexCount;
