@@ -480,31 +480,35 @@ void TexWavesApp::UpdateMainPassCB(const GameTimer& gt)
 
 	mMainPassCB.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
 	mMainPassCB.Lights[0].Strength = { 0.5f, 0.1f, 0.0f };
-	
-	mMainPassCB.Lights[1].Position = { -9.0f, 13.0f, -9.0f };
-	mMainPassCB.Lights[1].Direction = { 0.0f, -5.0f, 0.0f };
-	mMainPassCB.Lights[1].Strength = { 0.541f, 0.984f, 1.0f };
-	mMainPassCB.Lights[1].SpotPower = 0.45;
 
-	mMainPassCB.Lights[2].Position = { 9.0f, 13.0f, -9.0f };
+	mMainPassCB.Lights[1].Position = { 0.0f, 18.0f, 0.0f };
+	//mMainPassCB.Light1[5].Direction = { 0.0f, -5.0f, 0.0f };
+	mMainPassCB.Lights[1].Strength = { 0.196f, 0.784f, 0.305f };
+	//mMainPassCB.Lights[1].SpotPower = 0.95;
+	mMainPassCB.Lights[1].FalloffStart = 1.0f;
+	mMainPassCB.Lights[1].FalloffEnd = 30;
+	
+	mMainPassCB.Lights[2].Position = { -9.0f, 13.0f, -9.0f };
 	mMainPassCB.Lights[2].Direction = { 0.0f, -5.0f, 0.0f };
 	mMainPassCB.Lights[2].Strength = { 0.541f, 0.984f, 1.0f };
 	mMainPassCB.Lights[2].SpotPower = 0.45;
 
-	mMainPassCB.Lights[3].Position = { -9.0f, 13.0f, 9.0f };
+	mMainPassCB.Lights[3].Position = { 9.0f, 13.0f, -9.0f };
 	mMainPassCB.Lights[3].Direction = { 0.0f, -5.0f, 0.0f };
 	mMainPassCB.Lights[3].Strength = { 0.541f, 0.984f, 1.0f };
 	mMainPassCB.Lights[3].SpotPower = 0.45;
 
-	mMainPassCB.Lights[4].Position = { 9.0f, 13.0f, 9.0f };
+	mMainPassCB.Lights[4].Position = { -9.0f, 13.0f, 9.0f };
 	mMainPassCB.Lights[4].Direction = { 0.0f, -5.0f, 0.0f };
 	mMainPassCB.Lights[4].Strength = { 0.541f, 0.984f, 1.0f };
 	mMainPassCB.Lights[4].SpotPower = 0.45;
 
-	mMainPassCB.Lights[5].Position = { 0.0f, 18.0f, 0.0f };
+	mMainPassCB.Lights[5].Position = { 9.0f, 13.0f, 9.0f };
 	mMainPassCB.Lights[5].Direction = { 0.0f, -5.0f, 0.0f };
-	mMainPassCB.Lights[5].Strength = { 1, 0, 0 };
-	mMainPassCB.Lights[5].SpotPower = 0.95;
+	mMainPassCB.Lights[5].Strength = { 0.541f, 0.984f, 1.0f };
+	mMainPassCB.Lights[5].SpotPower = 0.45;
+
+	
 
 	//mMainPassCB.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
 	//mMainPassCB.Lights[1].Strength = { 0.5f, 0.5f, 0.5f };
@@ -1313,8 +1317,8 @@ void TexWavesApp::BuildMaterials()
 	tiger_gem->MatCBIndex = cbi++;
 	tiger_gem->DiffuseSrvHeapIndex = SHI++;
 	tiger_gem->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	tiger_gem->FresnelR0 = XMFLOAT3(0.3f, 0.3f, 0.3f);
-	tiger_gem->Roughness = 0.1f;
+	tiger_gem->FresnelR0 = XMFLOAT3(0.9f, 0.9f, 0.9f);
+	tiger_gem->Roughness = 0.0f;
 
 	mMaterials["grass"] = std::move(grass);
 	mMaterials["water"] = std::move(water);
@@ -1587,7 +1591,7 @@ void TexWavesApp::BuildRenderItems()
 	auto Base3 = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&Base3->World, XMMatrixScaling(4.0f, 6.0f, 4.0f) * XMMatrixTranslation(0.0f, 13.0f, 0.0f));
 	Base3->ObjCBIndex = cbindex++;
-	Base3->Mat = mMaterials["wirefence"].get();
+	Base3->Mat = mMaterials["emerald"].get();
 	Base3->Geo = mGeometries["shapeGeo"].get();
 	Base3->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	Base3->IndexCount = Base3->Geo->DrawArgs["Base3"].IndexCount;
@@ -1598,7 +1602,7 @@ void TexWavesApp::BuildRenderItems()
 	auto top = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&top->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(0.0f, 18.0f, 0.0f));
 	top->ObjCBIndex = cbindex++;
-	top->Mat = mMaterials["wirefence"].get();
+	top->Mat = mMaterials["emerald"].get();
 	top->Geo = mGeometries["shapeGeo"].get();
 	top->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	top->IndexCount = top->Geo->DrawArgs["top"].IndexCount;
