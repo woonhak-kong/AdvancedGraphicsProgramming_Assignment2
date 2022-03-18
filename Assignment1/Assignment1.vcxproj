@@ -147,9 +147,6 @@
     <ClCompile Include="..\Common\GeometryGenerator.cpp" />
     <ClCompile Include="..\Common\MathHelper.cpp" />
     <ClCompile Include="Castle_Woonhak_Kong.cpp" />
-    <ClCompile Include="Castle_Woonhak_Kong_1.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="FrameResource.cpp" />
     <ClCompile Include="Waves.cpp" />
   </ItemGroup>

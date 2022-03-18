@@ -39,9 +39,6 @@
     <ClCompile Include="FrameResource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Castle_Woonhak_Kong_1.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Castle_Woonhak_Kong.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
