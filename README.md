@@ -1,3 +1,4 @@
 # Advanced Graphics Programming
 
-### Assignment1
+### Assignment2
+#### About Texturing, Lighting, Blending, and Billboard
