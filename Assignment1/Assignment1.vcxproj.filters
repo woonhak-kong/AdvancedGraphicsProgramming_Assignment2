@@ -85,12 +85,6 @@
     <FxCompile Include="Shaders\color.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\PS.hlsl">
-      <Filter>Resource Files</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\VS.hlsl">
-      <Filter>Resource Files</Filter>
-    </FxCompile>
     <FxCompile Include="Shaders\Default.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>

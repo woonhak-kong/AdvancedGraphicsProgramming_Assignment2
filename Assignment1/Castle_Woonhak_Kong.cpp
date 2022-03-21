@@ -514,16 +514,19 @@ void TexWavesApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.DeltaTime = gt.DeltaTime();
 	mMainPassCB.AmbientLight = { 0.4f, 0.4f, 0.4f, 1.0f };
 
+	// directional
 	mMainPassCB.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
 	mMainPassCB.Lights[0].Strength = { 0.5f, 0.1f, 0.0f };
 
+	// point
 	mMainPassCB.Lights[1].Position = { 0.0f, 18.0f, 0.0f };
 	//mMainPassCB.Light1[5].Direction = { 0.0f, -5.0f, 0.0f };
 	mMainPassCB.Lights[1].Strength = { 0.196f, 0.784f, 0.305f };
 	//mMainPassCB.Lights[1].SpotPower = 0.95;
 	mMainPassCB.Lights[1].FalloffStart = 1.0f;
 	mMainPassCB.Lights[1].FalloffEnd = 50;
-	
+
+	// spotlight
 	mMainPassCB.Lights[2].Position = { -9.0f, 13.0f, -9.0f };
 	mMainPassCB.Lights[2].Direction = { 0.0f, -5.0f, 0.0f };
 	mMainPassCB.Lights[2].Strength = { 0.541f, 0.984f, 1.0f };
